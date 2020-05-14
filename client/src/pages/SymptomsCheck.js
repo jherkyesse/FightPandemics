@@ -1,19 +1,95 @@
 import React, { useState } from "react";
-
+import styled from "styled-components";
+import { Checkbox } from "antd-mobile";
+import { theme } from "../constants/theme";
 import {
-  AnswerButton,
-  AnswerCheckbox,
   getAnswersMap,
   getCheckedAnswers,
   StyledWizard,
   WizardContainer,
   WizardStep,
   WizardNav,
+  StepTitle,
 } from "../components/StepWizard";
 import { ResultsPage } from "./ResultsPage.js";
 import { Under18 } from "./CovidScreening/Under18";
 
+const { typography } = theme;
+
 const INITIAL_STATE = {};
+
+const TitleStyle = styled.div`
+  font-weight: bold;
+  margin: 10px 0 15px;
+`;
+
+const SubtitleStyle = styled.h5`
+  margin: 15px 0;
+`;
+
+const StyledUl = styled.ul`
+  padding: 0 0 0 15px;
+  margin: 40px 0;
+`;
+
+const AnswerStyles = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  color: #000;
+  font-family: ${typography.font.family.display}, sans-serif;
+  font-size: ${typography.size.large};
+  border: 0.1rem solid ${theme.colors.royalBlue};
+  border-radius: 0.8rem;
+  box-sizing: border-box;
+  cursor: pointer;
+  padding: 20px 25px;
+  margin: 15px 0px;
+  &:hover,
+  &.selected {
+    background-color: ${theme.colors.royalBlue};
+    color: #fff;
+  }
+  strong {
+    display: block;
+  }
+  & .am-checkbox-wrapper {
+    margin: 0 0 0 10px;
+  }
+  & .am-checkbox-inner {
+    border-radius: 3px;
+    border-color: transparent;
+  }
+  & .am-checkbox-checked > .am-checkbox-inner {
+    background: #fff;
+    &::after {
+      border-color: #425af2;
+      border-right-width: 2px;
+      border-bottom-width: 2px;
+      margin: 1px 1px 0 0;
+    }
+  }
+  & h6 {
+    color: #939393;
+  }
+`;
+
+const AnswerButton = ({ children, onSelect }) => {
+  return <AnswerStyles onClick={onSelect}>{children}</AnswerStyles>;
+};
+
+const AnswerCheckbox = ({ text, content, checked, onSelect }) => {
+  return (
+    <AnswerStyles onClick={onSelect} className={checked && "selected"}>
+      <span>
+        {text}
+        {!!content && <h6>{content}</h6>}
+      </span>
+      <Checkbox checked={checked} />
+    </AnswerStyles>
+  );
+};
 
 const Welcome = (props) => {
   const onSelectAnswer = (answer) => {
@@ -23,23 +99,25 @@ const Welcome = (props) => {
 
   return (
     <WizardStep>
-      <h6 className="text-primary">Before you start</h6>
-      <h5 className="mb-5">
-        Stop or call your local emergency number 911 if you or anyone else have
-        any of these symptoms
-      </h5>
-      <ol>
+      <h5>Is this an emergency?</h5>
+      <h3>
+        <TitleStyle>
+          Stop or call your local emergency number 911 if you or anyone else
+          have any of these symptoms
+        </TitleStyle>
+      </h3>
+      <StyledUl>
         <li>Constant chest pain or pressure</li>
         <li>Extreme difficulty breathing</li>
         <li>Severe, constant dizziness or lightheadedness</li>
         <li>Slurred speech</li>
         <li>Difficulty waking up </li>
-      </ol>
+      </StyledUl>
       <AnswerButton onSelect={() => onSelectAnswer("yes")}>
-        <strong>Medical:</strong> I believe I might have symptoms of COVID-19.
+        Yes, they are experiencing at least one of these symptoms
       </AnswerButton>
       <AnswerButton onSelect={() => onSelectAnswer("yes")}>
-        <strong>Medical:</strong> I do not have symptoms.
+        No, they do not have any of these symptoms
       </AnswerButton>
     </WizardStep>
   );
@@ -56,25 +134,27 @@ const Step1 = (props) => {
       <h5 className="text-primary">
         Question {props.currentStep - 1} / {props.totalSteps - 1}
       </h5>
-      <h2 className="mb-5">How old are you?</h2>
-      <AnswerButton onSelect={() => onSelectAnswer("under 18")}>
-        under 18
+      <StepTitle>How old are they?</StepTitle>
+      <AnswerButton onSelect={() => onSelectAnswer("Under 18")}>
+        Under 18
       </AnswerButton>
-      <AnswerButton onSelect={() => onSelectAnswer("18-64")}>
-        18-64
+      <AnswerButton onSelect={() => onSelectAnswer("Between 18 and 64")}>
+        Between 18 and 64
       </AnswerButton>
-      <AnswerButton onSelect={() => onSelectAnswer("65+")}>65+</AnswerButton>
+      <AnswerButton onSelect={() => onSelectAnswer("65 or older")}>
+        65 or older
+      </AnswerButton>
     </WizardStep>
   );
 };
 
 const STEP_2_ANSWERS = [
+  "Fever, chills, or sweating",
+  "Difficulty breathing (not severe)",
+  "New or worsening cough",
   "Sore throat",
   "Aching throughout the body",
   "Vomiting or diarrhea",
-  "Fever, chills or sweating",
-  "Difficulty breathing",
-  "New or worsening cough",
 ];
 
 const STEP_2_STATE = {
@@ -99,12 +179,11 @@ const Step2 = (props) => {
 
   return (
     <WizardStep>
-      <h5 className="text-primary">
+      <h5>
         Question {props.currentStep - 1} / {props.totalSteps - 1}
       </h5>
-      <h2 className="mb-5">
-        Do you have any of these symptoms? Please, select all that apply:
-      </h2>
+      <StepTitle>Are they experiencing any of these symptoms?</StepTitle>
+      <SubtitleStyle>Multiple options can be selected.</SubtitleStyle>
       {Object.entries(answers).map(([answer, checked], i) => (
         <AnswerCheckbox
           key={i}
@@ -114,7 +193,7 @@ const Step2 = (props) => {
         />
       ))}
       <AnswerCheckbox
-        text={"None of these"}
+        text={"None of the above"}
         onSelect={toggleNone}
         checked={none}
       />
@@ -123,14 +202,16 @@ const Step2 = (props) => {
 };
 
 const STEP_3_ANSWERS = [
-  "Diseases or conditions that make it hard to cough",
+  "Moderate to severe asthma or chronic lung disease",
+  "Cancer treatment or medicines causing immune suppression",
+  "Inherited immune system definicies or HIV",
+  "Serious heart conditions, such as heart failure or prior heart attack",
+  "Diabetes with complications",
   "Kidney failure that needs dialysis",
   "Cirrhosis of the liver",
-  "Asthma or chronic lung disease",
-  "Diabetes with complications",
+  "Diseases or conditions that make it harder to cough",
   "Extreme obesity",
-  "Weakened immune system",
-  "Congestive heart failure",
+  "Pregnancy",
 ];
 
 const STEP_3_STATE = {
@@ -155,23 +236,21 @@ const Step3 = (props) => {
 
   return (
     <WizardStep>
-      <h5 className="text-primary">
+      <h5>
         Question {props.currentStep - 1} / {props.totalSteps - 1}
       </h5>
-      <h2 className="mb-5">
-        Do you have any of these pre-existing medical conditions? Please, select
-        all that apply?
-      </h2>
+      <StepTitle>Do any of these apply to them?</StepTitle>
+      <SubtitleStyle>Multiple options can be selected.</SubtitleStyle>
       {Object.entries(answers).map(([answer, checked], i) => (
         <AnswerCheckbox
           key={i}
           text={answer}
           onSelect={() => toggleAnswer(answer)}
-          checked={checked}
+          checked={!none && checked}
         />
       ))}
       <AnswerCheckbox
-        text={"None of these"}
+        text={"None of the above"}
         onSelect={toggleNone}
         checked={none}
       />
@@ -186,79 +265,139 @@ const Step4 = (props) => {
   };
 
   return (
-    <div>
-      <h5 className="text-primary">
+    <WizardStep>
+      <h5>
         Question {props.currentStep - 1} / {props.totalSteps - 1}
       </h5>
-      <h2 className="mb-5">
-        Have you traveled internationally during the last 2 weeks?
-      </h2>
-      <AnswerButton onSelect={() => onSelectAnswer("yes")}>Yes</AnswerButton>
-      <AnswerButton onSelect={() => onSelectAnswer("no")}>No</AnswerButton>
-    </div>
+      <StepTitle>
+        Have they traveled internationally in the last 14 days?
+      </StepTitle>
+      <AnswerButton onSelect={() => onSelectAnswer("yes")}>
+        They have travelled internationally
+      </AnswerButton>
+      <AnswerButton onSelect={() => onSelectAnswer("no")}>
+        <span>
+          They have <b>not</b> travelled internationally
+        </span>
+      </AnswerButton>
+    </WizardStep>
   );
+};
+
+const STEP_5_ANSWERS = [
+  ["They live with someone who has COVID-19"],
+  [
+    "They’ve had close contact with someone who has COVID-19",
+    "They were within 6 feet or 1.5 meteres of someone who’s sick, or were exposed to a cough or sneeze.",
+  ],
+  [
+    "They’ve been near someone who has COVID-19",
+    "They were at least 6 feet or 1.5 meters away and were not exposed to a sneeze or cough.",
+  ],
+  [
+    "They’ve had no exposure",
+    "They have not been in contact with anyone who has COVID-19.",
+  ],
+];
+
+const STEP_5_STATE = {
+  answers: getAnswersMap(STEP_5_ANSWERS),
+  none: false,
 };
 
 const Step5 = (props) => {
-  const onSelectAnswer = (answer) => {
-    props.update("exposureAreaLast2Weeks", answer);
-    props.nextStep();
+  const [state, updateState] = useState(STEP_5_STATE);
+  const { answers, none } = state;
+  const toggleAnswer = (answer) => {
+    const updatedAnswers = { ...answers, [answer]: !answers[answer] };
+    const checkedAnswers = getCheckedAnswers(updatedAnswers);
+    updateState({ ...state, answers: updatedAnswers });
+    props.update("conditions", checkedAnswers);
+  };
+  const toggleNone = () => {
+    const newNone = !none;
+    updateState({ ...state, none: newNone });
+    props.update("conditions", newNone ? [] : getCheckedAnswers(answers));
   };
 
   return (
-    <div>
-      <h5 className="text-primary">
+    <WizardStep>
+      <h5>
         Question {props.currentStep - 1} / {props.totalSteps - 1}
       </h5>
-      <h2 className="mb-5">
-        If so, have you traveled to an area severely affected by the COVID-19
-        outbreak?
-      </h2>
-      <AnswerButton onSelect={() => onSelectAnswer("live")}>
-        I live in an area severely affected by the COVID-19 outbreak
-      </AnswerButton>
-      <AnswerButton onSelect={() => onSelectAnswer("visited")}>
-        I have visited an area severely affected by the COVID-19 outbreak
-      </AnswerButton>
-      <AnswerButton onSelect={() => onSelectAnswer("none")}>
-        None of these apply
-      </AnswerButton>
-    </div>
+      <StepTitle>
+        In the last 14 days, what was their exposure to others who are known to
+        have COVID‑19?
+      </StepTitle>
+      <SubtitleStyle>Multiple options can be selected.</SubtitleStyle>
+      {Object.entries(answers).map(([answer, checked], i) => (
+        <AnswerCheckbox
+          key={i}
+          text={STEP_5_ANSWERS[i][0]}
+          content={STEP_5_ANSWERS[i][1]}
+          onSelect={() => toggleAnswer(answer)}
+          checked={!none && checked}
+        />
+      ))}
+      <AnswerCheckbox
+        text={"None of these apply"}
+        onSelect={toggleNone}
+        checked={none}
+      />
+    </WizardStep>
   );
 };
 
+const STEP_6_ANSWERS = [
+  "They live in an area where COVID-19 is widespread",
+  "They have visited an area where COVID-19 is widespread",
+  "I’m not sure",
+];
+
+const STEP_6_STATE = {
+  answers: getAnswersMap(STEP_6_ANSWERS),
+  none: false,
+};
+
 const Step6 = (props) => {
-  const onSelectAnswer = (answer) => {
-    props.update("exposureLast14Days", answer);
-    props.nextStep();
+  const [state, updateState] = useState(STEP_6_STATE);
+  const { answers, none } = state;
+  const toggleAnswer = (answer) => {
+    const updatedAnswers = { ...answers, [answer]: !answers[answer] };
+    const checkedAnswers = getCheckedAnswers(updatedAnswers);
+    updateState({ ...state, answers: updatedAnswers });
+    props.update("conditions", checkedAnswers);
+  };
+  const toggleNone = () => {
+    const newNone = !none;
+    updateState({ ...state, none: newNone });
+    props.update("conditions", newNone ? [] : getCheckedAnswers(answers));
   };
 
   return (
-    <div>
-      <h5 className="text-primary">
+    <WizardStep>
+      <h5>
         Question {props.currentStep - 1} / {props.totalSteps - 1}
       </h5>
-      <h2 className="mb-5">
-        Accordingly to what you know, have you been exposed to others who are
-        known to have COVID-19 during the last 2 weeks? Please, select all that
-        apply.
-      </h2>
-      <AnswerButton onSelect={() => onSelectAnswer("live with")}>
-        I live with someone who has COVID-19
-      </AnswerButton>
-      <AnswerButton onSelect={() => onSelectAnswer("close contact")}>
-        I had close contact with someone with COVID-19 (10 minutes or more spent
-        together within 6 feet from each other or were exposed to their sneeze
-        or cough)
-      </AnswerButton>
-      <AnswerButton onSelect={() => onSelectAnswer("near someone 6ft")}>
-        I was near someone with COVID-19 (at least 6-feet away and not exposed
-        to their cough or sneeze)
-      </AnswerButton>
-      <AnswerButton onSelect={() => onSelectAnswer("no exposure")}>
-        No exposure
-      </AnswerButton>
-    </div>
+      <StepTitle>
+        In the last 14 days, have they been in an area where COVID‑19 is
+        widespread?
+      </StepTitle>
+      <SubtitleStyle>Multiple options can be selected.</SubtitleStyle>
+      {Object.entries(answers).map(([answer, checked], i) => (
+        <AnswerCheckbox
+          key={i}
+          text={answer}
+          onSelect={() => toggleAnswer(answer)}
+          checked={!none && checked}
+        />
+      ))}
+      <AnswerCheckbox
+        text={"None of the above"}
+        onSelect={toggleNone}
+        checked={none}
+      />
+    </WizardStep>
   );
 };
 
@@ -270,13 +409,13 @@ const Step7 = (props) => {
 
   return (
     <div>
-      <h5 className="text-primary">
-        Question {props.currentStep} / {props.totalSteps}
+      <h5>
+        Question {props.currentStep - 1} / {props.totalSteps - 1}
       </h5>
-      <h2 className="mb-5">
-        Do you live in a care facility? This includes nursing homes or assisted
-        living facilities.
-      </h2>
+      <StepTitle>Do they live in a care facility?</StepTitle>
+      <SubtitleStyle>
+        This includes nursing homes or assisted living facilities.
+      </SubtitleStyle>
       <AnswerButton onSelect={() => onSelectAnswer("currently living")}>
         I live in a long-term care facility
       </AnswerButton>
@@ -295,24 +434,30 @@ const Step8 = (props) => {
 
   return (
     <div>
-      <h5 className="text-primary">
-        Question {props.currentStep} / {props.totalSteps}
+      <h5>
+        Question {props.currentStep - 1} / {props.totalSteps - 1}
       </h5>
-      <h2 className="mb-5">
-        Do you live in a medical facility? This includes a hospital, emergency
-        room, other medical setting, or long-term care facility.Select all that
-        apply.
-      </h2>
+      <StepTitle>Do they work in a medical facility?</StepTitle>
+      <SubtitleStyle>
+        This includes a hospital, emergency room, other medical setting, or
+        long-term care facility. Select all that apply.
+      </SubtitleStyle>
       <AnswerButton onSelect={() => onSelectAnswer("worked")}>
-        I have worked in a hospital, or other care facility in the past 14 days.
-        This includes volunteering.
+        <div>
+          They have worked in a hospital or other care facility in the past 14
+          days
+          <h6>This includes volunteering.</h6>
+        </div>
       </AnswerButton>
       <AnswerButton onSelect={() => onSelectAnswer("plan to work")}>
-        I plan to work in hospital, or other care facility in the next 14 days.
-        This includes volunteering
+        <div>
+          They plan to work in a hospital or other care facility in the next 14
+          days
+          <h6>This includes volunteering.</h6>
+        </div>
       </AnswerButton>
       <AnswerButton onSelect={() => onSelectAnswer("no")}>
-        No, I dont work or plan to work in a care facility.
+        No, they don’t work or plan to work in a care facility
       </AnswerButton>
     </div>
   );
@@ -647,6 +792,7 @@ export const SymptomsCheck = () => {
 
   return (
     <WizardContainer className="mx-auto">
+      <button className="close"></button>
       <StyledWizard isHashEnabled nav={<WizardNav />}>
         <Welcome update={updateAnswers} />
         <Step1 hashKey={"Step1"} update={updateAnswers} />

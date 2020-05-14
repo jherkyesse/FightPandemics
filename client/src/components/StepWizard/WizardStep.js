@@ -11,6 +11,10 @@ const WizardStep = styled.div`
   p {
     font-family: ${font.family.display};
   }
+  h5 {
+    height: 55px;
+    line-height: 64px;
+  }
 `;
 
 export default WizardStep;
